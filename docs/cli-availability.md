@@ -112,7 +112,24 @@ pyftsubset: invalid ELF header
 它们是 `#! /usr/bin/python3` 的脚本，**必须用 Python 解释器跑**，
 不能套 glibc 加载器。
 
-### 5. `lazygit` 的 `SIGSYS`（见上）
+### 5. 经 glibc 加载器启动时，`current_exe()` 返回的是**加载器**的路径
+
+装 helix 时发现的。helix 用自己的二进制位置定位 `runtime/` 数据目录，
+但我们是用 `ld-linux ... hx` 启动的，于是它拿到的是加载器的路径：
+
+```
+Runtime directory does not exist: <glibc 前缀>/glibc/lib/runtime
+```
+
+结果：**所有语言支持全部失效**（`hx --health` 里全是 ✘）。
+
+解法是用该工具自己的环境变量显式指定（helix 是 `HELIX_RUNTIME`）。
+`addcli` 会自动识别并在包装脚本里注入。
+
+> 这类"数据目录在二进制旁边"的工具都要注意：neovim(`VIMRUNTIME`)、
+> 各种带 `share/` 的工具同理。
+
+### 6. `lazygit` 的 `SIGSYS`（见上）
 
 Go 工具在 Android 上不保证能用。**同类的 `yq` 可以，`lazygit` 不行。**
 
@@ -156,6 +173,26 @@ exec "$GLIBC_PREFIX/glibc/lib/ld-linux-aarch64.so.1" \
 ---
 
 ## 六、怎么加新工具
+
+### 用 addcli（推荐）
+
+```sh
+addcli <owner/repo>
+```
+
+它按上面的优先级自动挑资产、下载、**试跑验证**、安装。
+失败会自动换下一个候选 —— 不用手工一个个试。
+
+常用参数：
+
+| 参数 | 作用 |
+|---|---|
+| `--list` | 只列候选与评分，不下载 |
+| `--name foo` | 指定安装后的命令名 |
+| `--tag v1.2.3` | 指定版本 |
+| `--runtime-env KEY` | 该工具用什么环境变量指定数据目录 |
+
+### 手工流程
 
 1. **先看有没有 `aarch64-unknown-linux-musl` 资产** → 有就下，`chmod +x`，跑 `--version` 验
 2. **没有再试 Debian**（`node tools/debtool.mjs install <包名>`）

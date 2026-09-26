@@ -139,6 +139,40 @@ node tools/elfneed.mjs ./hello     # 看它依赖哪些库
 
 ---
 
+## addcli —— 一条命令装 Linux CLI 工具
+
+```sh
+addcli sharkdp/fd              # 自动挑最佳资产、下载、试跑、安装
+addcli duckdb/duckdb --list    # 只看候选，不下载
+addcli helix-editor/helix      # 需要数据目录的会自动整棵树安装
+```
+
+它会**按可跑性排序候选，逐个试跑，失败自动换下一个**。实测 duckdb：
+
+```
+① duckdb_cli-linux-arm64-musl.zip   ❌ 需要 musl 加载器
+② libduckdb-linux-arm64-musl.zip    ❌ 没有可执行文件（那是库）
+③ duckdb_cli-linux-arm64-musl.gz    ❌ 需要 musl 加载器
+④ static-libs-linux-arm64.zip       ❌ 里面没有可执行文件
+⑤ duckdb_cli-linux-arm64.zip        ✅ v1.5.5   ← 自己找到了
+```
+
+### 它内置了哪些实测教训
+
+| 教训 | 脚本里的对应 |
+|---|---|
+| **静态 ≠ 能跑**（lazygit 报 SIGSYS） | **强制真跑一次**才算验过，专门识别 seccomp 拦截 |
+| musl 跑不了就换 gnu（duckdb） | 候选逐个试，**自动回退** |
+| 安卓没有 xz 解压器 | 内置纯 JS 解压，并支持 `decompress()` 回退 |
+| 有些"二进制"是 Python 脚本 | 先看魔数，是脚本就报错而非硬套加载器 |
+| 通过加载器启动时 `current_exe()` 不可靠 | 自动识别数据目录并注入环境变量（如 `HELIX_RUNTIME`） |
+
+> 第 5 条是装 helix 时发现的：经 glibc 加载器启动时，
+> 程序拿到的 `current_exe()` 是**加载器**的路径，于是它去
+> `<加载器目录>/runtime` 找数据 —— 永远找不到。必须显式指定。
+
+---
+
 ## 哪些 Linux CLI 工具能在这台设备上跑
 
 完整矩阵见 **[docs/cli-availability.md](docs/cli-availability.md)** —— 全部经本机实测。
