@@ -1,0 +1,12 @@
+#!/system/bin/sh
+# mkapk — 一键构建 APK（aapt2 + GCC + 自签 v2/v3）
+#
+# 脚本在本仓库的 tools/ 下。若把本包装脚本拷到别处（如放进 PATH），
+# 用 DSH_TOOLS_REPO 指向仓库根目录。
+REPO="${DSH_TOOLS_REPO:-$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)}"
+if [ ! -f "$REPO/tools/mkapk.mjs" ]; then
+  echo "mkapk: 找不到 $REPO/tools/mkapk.mjs" >&2
+  echo "  设 DSH_TOOLS_REPO 指向本仓库根目录" >&2
+  exit 127
+fi
+exec node "$REPO/tools/mkapk.mjs" "$@"

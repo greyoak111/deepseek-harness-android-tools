@@ -1,0 +1,19 @@
+# 运行时生成
+prefix/
+node_modules/
+debcache/
+debroot/
+stage/
+*.deb
+*.log
+
+# 构建产物
+*.apk
+*.idsig
+*.class
+*.dex
+build/
+out/
+
+# 用户环境
+local.env

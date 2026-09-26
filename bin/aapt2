@@ -1,0 +1,11 @@
+#!/system/bin/sh
+# aapt2 — Android 资源打包工具（来自 Termux 的 glibc 前缀）
+#
+# 用 GLIBC_PREFIX 指向装有 aapt2 的前缀（默认 $HOME/tools/prefix）
+GLIBC_PREFIX="${GLIBC_PREFIX:-$HOME/tools/prefix}"
+if [ ! -x "$GLIBC_PREFIX/bin/aapt2" ]; then
+  echo "aapt2: 找不到 $GLIBC_PREFIX/bin/aapt2" >&2
+  echo "  用 tools/tpkg.mjs 装上 aapt2，或设 GLIBC_PREFIX 指向已有前缀" >&2
+  exit 127
+fi
+exec env LD_LIBRARY_PATH="$GLIBC_PREFIX/lib" "$GLIBC_PREFIX/bin/aapt2" "$@"

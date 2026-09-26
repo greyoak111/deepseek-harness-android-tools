@@ -1,0 +1,19 @@
+#!/system/bin/sh
+# mk4 — make（安卓原生目标）
+#
+# 依赖 C4droid 的 NDK 工具链，用 C4TC 指向其根目录（默认 $HOME/c4tc）：
+#     $C4TC/tc/gcc/bin/aarch64-linux-android-*   ← 交叉工具链
+#     $C4TC/tmp/                                ← 编译临时目录
+C4TC="${C4TC:-$HOME/c4tc}"
+TC="$C4TC/tc/gcc"
+if [ ! -d "$TC" ]; then
+  echo "mk4: 找不到工具链: $TC" >&2
+  echo "  设 C4TC 指向 C4droid 工具链根目录（应包含 tc/gcc/）" >&2
+  exit 127
+fi
+export TMPDIR="${TMPDIR:-$C4TC/tmp}"
+mkdir -p "$TMPDIR" 2>/dev/null
+export PATH="$TC/bin:$TC/aarch64-linux-android/bin:$PATH"
+# DSH 运行时自带的 libz.so 会污染系统 app_process 的链接，必须剥掉
+unset LD_LIBRARY_PATH LD_PRELOAD LD_DEBUG
+exec make "$@"
