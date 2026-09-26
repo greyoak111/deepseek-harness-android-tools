@@ -139,6 +139,26 @@ node tools/elfneed.mjs ./hello     # 看它依赖哪些库
 
 ---
 
+## 哪些 Linux CLI 工具能在这台设备上跑
+
+完整矩阵见 **[docs/cli-availability.md](docs/cli-availability.md)** —— 全部经本机实测。
+
+**一句话判据：**
+
+| 类型 | 能否直接跑 |
+|---|---|
+| Rust **musl 静态** | ✅ 下载即用（typst / ripgrep / fd / bat） |
+| Go 完全静态 | ⚠️ 看 syscall（yq ✅ / **lazygit ❌ SIGSYS**） |
+| musl **动态** | ❌ 缺加载器 —— **换同仓库的 gnu 版** |
+| glibc 动态 | ✅ 配 glibc 前缀（duckdb / astcenc） |
+
+> ⚠️ **静态 ≠ 能跑。** 安卓 seccomp 会拦掉部分系统调用，
+> 光看 `file` 输出判断不出来 —— **加工具时必须跑一次 `--version` 才算验过。**
+
+已实测通过的：`typst` `duckdb` `astcenc` `magick` `fonttools` `ripgrep` `fd` `bat` `yq`
+
+---
+
 ## localbridge —— 让 glibc 程序联网
 
 安卓**没有 `/etc/resolv.conf`**（DNS 走 `netd`，按网络动态分配），
