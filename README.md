@@ -35,6 +35,7 @@ DSH 安卓 App（woaiys3）       AI 的手和眼 —— Shizuku 特权、无障
 | `tools/elfneed.mjs` | ELF 依赖分析（不需要 `readelf`） |
 | `tools/unxz.mjs` | xz 解压（安卓自带工具链里没有任何 xz 解压器） |
 | `tools/getjar.mjs` | 从 Maven 取 jar |
+| `tools/localbridge.mjs` | **本地 HTTP 桥** —— 让 glibc 程序绕过 DNS 联网（见下） |
 | `scripts/fixprefix.sh` | 修 Termux 前缀的 shebang 与硬编码路径 |
 
 ### 包装脚本（`bin/`）
@@ -134,6 +135,33 @@ node tools/elfneed.mjs ./hello     # 看它依赖哪些库
 | 5 | **安卓没有 xz 解压器** | 所以内置了 `vendor/xz-decompress` |
 | 6 | **应用身份不能执行 `/data/local/tmp` 里的文件** | 要么走 `priv`，要么放应用私有目录 |
 | 7 | **`LD_LIBRARY_PATH` 会污染系统进程** | 包装脚本一律 `unset` 后再执行 |
+| 8 | **glibc 程序无法解析域名** | 安卓无 `/etc/resolv.conf`，且 Termux glibc 硬编码了自己的路径。用 `localbridge.mjs` 绕过 |
+
+---
+
+## localbridge —— 让 glibc 程序联网
+
+安卓**没有 `/etc/resolv.conf`**（DNS 走 `netd`，按网络动态分配），
+而 Termux 的 glibc 又被改成只读它自己的硬编码路径：
+
+```
+libc.so.6 里的字面量：
+  /data/data/com.termux/files/usr/glibc/etc/resolv.conf   ← 别处不存在
+  /etc/resolv.conf                                        ← 安卓只读
+```
+
+结果：**所有 glibc 程序都无法解析域名**（Blender、编译器、CLI 工具…）。
+而 node 是 bionic，用安卓自己的解析器，能正常上网。
+
+```sh
+# 让 node 在本地做反向代理
+node tools/localbridge.mjs https://api.example.com 8788
+
+# glibc 程序指向它即可 —— 不需要 DNS，也不用改 libc
+export SOME_BASE_URL=http://127.0.0.1:8788
+```
+
+支持流式（SSE）转发，适合 LLM API 这类长连接。
 
 ---
 
