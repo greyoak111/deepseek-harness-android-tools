@@ -1,0 +1,50 @@
+[
+  {
+    "i": 1,
+    "ok": true,
+    "ms": 10981,
+    "memFreeMB": 226.83203125,
+    "nServer": 2,
+    "nWine": 0
+  },
+  {
+    "i": 2,
+    "ok": true,
+    "ms": 10747,
+    "memFreeMB": 345.69140625,
+    "nServer": 1,
+    "nWine": 0
+  },
+  {
+    "i": 3,
+    "ok": true,
+    "ms": 10109,
+    "memFreeMB": 305.02734375,
+    "nServer": 1,
+    "nWine": 0
+  },
+  {
+    "i": 4,
+    "ok": true,
+    "ms": 10578,
+    "memFreeMB": 349.71484375,
+    "nServer": 1,
+    "nWine": 0
+  },
+  {
+    "i": 5,
+    "ok": true,
+    "ms": 10452,
+    "memFreeMB": 552.23828125,
+    "nServer": 1,
+    "nWine": 0
+  },
+  {
+    "i": 6,
+    "ok": true,
+    "ms": 10797,
+    "memFreeMB": 629.703125,
+    "nServer": 1,
+    "nWine": 0
+  }
+]
