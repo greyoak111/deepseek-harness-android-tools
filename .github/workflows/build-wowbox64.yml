@@ -45,38 +45,46 @@ jobs:
         working-directory: box64
         run: |
           set -e
-          F=src/wine/wow64/wowbox64.c
+          echo "=== 当前目录 ==="
+          pwd
+          echo "=== 顶层内容 ==="
+          ls -la | head -20
+          echo "=== 定位 wowbox64.c ==="
+          F=$(find . -name wowbox64.c -path '*wow64*' | head -1)
+          if [ -z "$F" ]; then
+            echo "!! 找不到 wowbox64.c，全仓搜索："
+            find . -name 'wowbox64.c' | head -5
+            echo "目录树（前 40 项）："
+            find . -maxdepth 3 -type d | head -40
+            exit 1
+          fi
+          echo "找到: $F"
           echo "=== 打补丁前 ==="
           grep -n -A4 'LoadEnvVariables();' "$F" | head -12
 
-          python3 - <<'PY'
+          python3 - "$F" <<'PY'
           import re, sys
-          p = "src/wine/wow64/wowbox64.c"
+          p = sys.argv[1]
           s = open(p).read()
 
-          # 1) 去掉 InitializeEnvFiles(); 紧跟 LoadEnvVariables() 的那次调用，
-          #    并在 InitializeSystemInfo() 之后插入 init_custommem_helper + InitializeEnvFiles
-          old = """    LoadEnvVariables();
-              InitializeEnvFiles();
-              InitializeSystemInfo();"""
-          new = """    LoadEnvVariables();
-              InitializeSystemInfo();
-              /* PR #4285: initialize memory before reading the RC file */
-              init_custommem_helper(&box64_context);
-              InitializeEnvFiles();"""
-          # 兼容不同缩进：用正则
+          # 1) LoadEnvVariables() 后的 InitializeEnvFiles() 挪到 InitializeSystemInfo() 之后，
+          #    并在两者之间插入 init_custommem_helper
           pat = re.compile(r"( *)LoadEnvVariables\(\);\n\s*InitializeEnvFiles\(\);\n(\s*)InitializeSystemInfo\(\);")
           m = pat.search(s)
           if not m:
-              print("!! 没匹配到目标代码块，源码可能已变", file=sys.stderr)
+              print("!! 没匹配到目标代码块", file=sys.stderr)
+              i = s.find("LoadEnvVariables();")
+              print("上下文：", file=sys.stderr)
+              print(s[max(0,i-200):i+400], file=sys.stderr)
               sys.exit(1)
-          indent = m.group(1)
-          repl = (f"{indent}LoadEnvVariables();\n"
-                  f"{indent}InitializeSystemInfo();\n"
-                  f"{indent}/* PR #4285: initialize memory before reading the RC file */\n"
-                  f"{indent}init_custommem_helper(&box64_context);\n"
-                  f"{indent}InitializeEnvFiles();")
+          ind = m.group(1)
+          repl = (f"{ind}LoadEnvVariables();\n"
+                  f"{ind}InitializeSystemInfo();\n"
+                  f"{ind}/* PR #4285: initialize memory before reading the RC file */\n"
+                  f"{ind}init_custommem_helper(&box64_context);\n"
+                  f"{ind}InitializeEnvFiles();")
           s = s[:m.start()] + repl + s[m.end():]
+          print("步骤1 完成：InitializeEnvFiles 已移到内存初始化之后")
 
           # 2) 删掉函数后段那次 init_custommem_helper（已上移）
           pat2 = re.compile(r"\n( *)init_custommem_helper\(&box64_context\);\n(\s*)box64_context\.db_sizes")
@@ -85,15 +93,16 @@ jobs:
               print("!! 没找到后段的 init_custommem_helper", file=sys.stderr)
               sys.exit(1)
           s = s[:m2.start()] + f"\n{m2.group(1)}/* init_custommem_helper() moved above (PR #4285) */\n{m2.group(2)}box64_context.db_sizes" + s[m2.end():]
+          print("步骤2 完成：后段的重复调用已移除")
 
           open(p, "w").write(s)
-          print("补丁已应用")
           PY
 
           echo "=== 打补丁后 ==="
           grep -n -B1 -A6 'LoadEnvVariables();' "$F" | head -14
-          echo "--- init_custommem_helper 出现次数（应为 1）---"
-          grep -c '^\s*init_custommem_helper' "$F" || true
+          echo "--- init_custommem_helper 实际调用次数（应为 1）---"
+          grep -c '^[[:space:]]*init_custommem_helper' "$F" || true
+          echo "$F" > /tmp/wowbox64_path.txt 2>/dev/null || true
 
       - name: 下载 llvm-mingw
         run: |
