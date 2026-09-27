@@ -1,5 +1,7 @@
 # deepseek-harness-android-tools
 
+> **在无 root 安卓上跑 Windows 程序** —— 完整实现笔记见 [docs/wine-on-android.md](docs/wine-on-android.md)
+
 **把一台安卓设备变成开发机的工具集** —— 在设备本地编译、打包、签名、管理依赖，不需要电脑。
 
 这些工具是随 **[DeepSeek Harness 手机版](https://github.com/woaiys3/deepseek-harness-android-app)** 一起长出来的：

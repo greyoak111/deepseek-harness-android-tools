@@ -1,0 +1,302 @@
+[
+  {
+    "tag": "基线",
+    "memFreeMB": 366.11328125,
+    "memAvailMB": 8636.7734375,
+    "slabMB": 738.19921875,
+    "sunreclaimMB": 440.52734375,
+    "pageTablesMB": 203.34375,
+    "mappedMB": 1414.88671875,
+    "shmemMB": 113.11328125,
+    "nWine": 0,
+    "nServer": 0,
+    "totalVszMB": 0,
+    "totalRssMB": 0,
+    "procs": []
+  },
+  {
+    "tag": "第1次",
+    "memFreeMB": 234.0859375,
+    "memAvailMB": 8714.765625,
+    "slabMB": 734.04296875,
+    "sunreclaimMB": 440.4140625,
+    "pageTablesMB": 201.25,
+    "mappedMB": 1363.2265625,
+    "shmemMB": 113.01953125,
+    "nWine": 0,
+    "nServer": 1,
+    "totalVszMB": 18.34765625,
+    "totalRssMB": 14.1015625,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.1015625,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  },
+  {
+    "tag": "第2次",
+    "memFreeMB": 245.41796875,
+    "memAvailMB": 8596.27734375,
+    "slabMB": 733.2578125,
+    "sunreclaimMB": 440.1484375,
+    "pageTablesMB": 201.375,
+    "mappedMB": 1309.9921875,
+    "shmemMB": 113.0859375,
+    "nWine": 0,
+    "nServer": 2,
+    "totalVszMB": 36.8359375,
+    "totalRssMB": 28.23046875,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.09765625,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 5973,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.1328125,
+        "vszMB": 18.48828125,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  },
+  {
+    "tag": "第3次",
+    "memFreeMB": 232.23046875,
+    "memAvailMB": 8661.02734375,
+    "slabMB": 732.953125,
+    "sunreclaimMB": 440.2421875,
+    "pageTablesMB": 201.48046875,
+    "mappedMB": 1284.7265625,
+    "shmemMB": 113.0859375,
+    "nWine": 0,
+    "nServer": 3,
+    "totalVszMB": 53.8359375,
+    "totalRssMB": 42.328125,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.09765625,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 5973,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.1328125,
+        "vszMB": 18.48828125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6113,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.09765625,
+        "vszMB": 17,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  },
+  {
+    "tag": "第4次",
+    "memFreeMB": 356.08984375,
+    "memAvailMB": 8568.76171875,
+    "slabMB": 732.703125,
+    "sunreclaimMB": 440.23828125,
+    "pageTablesMB": 201.69921875,
+    "mappedMB": 1273.55078125,
+    "shmemMB": 112.62109375,
+    "nWine": 0,
+    "nServer": 4,
+    "totalVszMB": 71.9609375,
+    "totalRssMB": 56.41796875,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.09765625,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 5973,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.1328125,
+        "vszMB": 18.48828125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6113,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.09765625,
+        "vszMB": 17,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6249,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08984375,
+        "vszMB": 18.125,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  },
+  {
+    "tag": "第5次",
+    "memFreeMB": 497.44921875,
+    "memAvailMB": 8754.2734375,
+    "slabMB": 732.48828125,
+    "sunreclaimMB": 440.390625,
+    "pageTablesMB": 201.609375,
+    "mappedMB": 1223.53125,
+    "shmemMB": 112.6171875,
+    "nWine": 0,
+    "nServer": 5,
+    "totalVszMB": 90.6796875,
+    "totalRssMB": 70.52734375,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08984375,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 5973,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.125,
+        "vszMB": 18.48828125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6113,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08984375,
+        "vszMB": 17,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6249,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08203125,
+        "vszMB": 18.125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6447,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.140625,
+        "vszMB": 18.71875,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  },
+  {
+    "tag": "第6次",
+    "memFreeMB": 532.9921875,
+    "memAvailMB": 8753.9375,
+    "slabMB": 732.1484375,
+    "sunreclaimMB": 440.31640625,
+    "pageTablesMB": 201.78125,
+    "mappedMB": 1231.515625,
+    "shmemMB": 112.6171875,
+    "nWine": 0,
+    "nServer": 6,
+    "totalVszMB": 107.7578125,
+    "totalRssMB": 84.640625,
+    "procs": [
+      {
+        "pid": 5808,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08984375,
+        "vszMB": 18.34765625,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 5973,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.125,
+        "vszMB": 18.48828125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6113,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08984375,
+        "vszMB": 17,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6249,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.08203125,
+        "vszMB": 18.125,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6447,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.140625,
+        "vszMB": 18.71875,
+        "threads": 1,
+        "fds": 94
+      },
+      {
+        "pid": 6580,
+        "kind": "wineserver",
+        "state": "S",
+        "rssMB": 14.11328125,
+        "vszMB": 17.078125,
+        "threads": 1,
+        "fds": 94
+      }
+    ]
+  }
+]
