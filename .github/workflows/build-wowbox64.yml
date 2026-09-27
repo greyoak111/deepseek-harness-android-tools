@@ -144,10 +144,20 @@ jobs:
           python3 - "$DLL" <<'PY'
           import struct, sys
           b = open(sys.argv[1], "rb").read()
-          m = struct.unpack_from("<H", b, 18)[0]
-          print(f"  machine = 0x{m:x}  (0xaa64 = ARM64)")
-          print(f"  size    = {len(b)} bytes")
-          assert m == 0xaa64, "不是 ARM64 PE！"
+          # PE 的 COFF 头位置：e_lfanew 在 0x3C（4 字节），
+          # PE 头 = "PE\0\0"（4 字节）+ Machine（2 字节）
+          # 注意：不能像 ELF 那样直接读偏移 18 —— 那是 ELF 的 e_machine 位置。
+          assert b[:2] == b"MZ", f"不是 PE（缺 MZ）：{b[:4]!r}"
+          e_lfanew = struct.unpack_from("<I", b, 0x3C)[0]
+          sig = b[e_lfanew:e_lfanew+4]
+          assert sig == b"PE\0\0", f"PE 头签名不对：{sig!r}"
+          machine = struct.unpack_from("<H", b, e_lfanew + 4)[0]
+          names = {0xaa64: "ARM64", 0x8664: "x86_64", 0x14c: "i386", 0x1c4: "ARMNT"}
+          print(f"  e_lfanew = 0x{e_lfanew:x}")
+          label = names.get(machine, "unknown")
+          print(f"  machine  = 0x{machine:x}  ({label})")
+          print(f"  size     = {len(b)} bytes")
+          assert machine == 0xaa64, f"期望 ARM64(0xaa64)，实际 0x{machine:x}"
           print("  ✅ 是 ARM64 PE")
           PY
           mkdir -p ../out
