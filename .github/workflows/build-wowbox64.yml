@@ -1,0 +1,152 @@
+name: Build patched wowbox64.dll
+
+# 为什么在 CI 上构建：
+#   wowbox64.dll 是 PE DLL，需要 mingw 交叉编译器（llvm-mingw）。
+#   它本身是给 Linux 编的，在安卓上跑不起来 ——
+#   clang 编译时要 spawn "clang -cc1" 子进程，而它靠 /proc/self/exe
+#   定位自身；经安卓的 glibc 加载器调用时 /proc/self/exe 指向加载器，
+#   于是 spawn 失败。这是无 root 安卓的硬约束。
+#   GitHub 的 ARM64 runner 是标准 Linux，原生可用。
+#
+# 打这个补丁的原因：
+#   box64 PR #4285「[WOWBOX64] Initialize memory before reading RC file」
+#   原文："This fixes hangs when .box64rc file is provided."
+#   根因：BTCpuProcessInit() 里 InitializeEnvFiles()（读 .box64rc）
+#         在 init_custommem_helper()（内存分配器初始化）【之前】被调用。
+#   该 PR 目前仍未合并（open），而 Hangover 用户普遍带 .box64rc，
+#   所以需要自己构建带补丁的版本。
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-wowbox64.yml'
+
+jobs:
+  build:
+    # ARM64 runner —— public 仓库免费
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: 环境信息
+        run: |
+          uname -a
+          nproc
+          cmake --version | head -1
+          ninja --version
+          python3 --version
+
+      - name: 取 box64 源码
+        uses: actions/checkout@v4
+        with:
+          repository: ptitSeb/box64
+          path: box64
+
+      - name: 应用 PR #4285 补丁
+        working-directory: box64
+        run: |
+          set -e
+          F=src/wine/wow64/wowbox64.c
+          echo "=== 打补丁前 ==="
+          grep -n -A4 'LoadEnvVariables();' "$F" | head -12
+
+          python3 - <<'PY'
+          import re, sys
+          p = "src/wine/wow64/wowbox64.c"
+          s = open(p).read()
+
+          # 1) 去掉 InitializeEnvFiles(); 紧跟 LoadEnvVariables() 的那次调用，
+          #    并在 InitializeSystemInfo() 之后插入 init_custommem_helper + InitializeEnvFiles
+          old = """    LoadEnvVariables();
+              InitializeEnvFiles();
+              InitializeSystemInfo();"""
+          new = """    LoadEnvVariables();
+              InitializeSystemInfo();
+              /* PR #4285: initialize memory before reading the RC file */
+              init_custommem_helper(&box64_context);
+              InitializeEnvFiles();"""
+          # 兼容不同缩进：用正则
+          pat = re.compile(r"( *)LoadEnvVariables\(\);\n\s*InitializeEnvFiles\(\);\n(\s*)InitializeSystemInfo\(\);")
+          m = pat.search(s)
+          if not m:
+              print("!! 没匹配到目标代码块，源码可能已变", file=sys.stderr)
+              sys.exit(1)
+          indent = m.group(1)
+          repl = (f"{indent}LoadEnvVariables();\n"
+                  f"{indent}InitializeSystemInfo();\n"
+                  f"{indent}/* PR #4285: initialize memory before reading the RC file */\n"
+                  f"{indent}init_custommem_helper(&box64_context);\n"
+                  f"{indent}InitializeEnvFiles();")
+          s = s[:m.start()] + repl + s[m.end():]
+
+          # 2) 删掉函数后段那次 init_custommem_helper（已上移）
+          pat2 = re.compile(r"\n( *)init_custommem_helper\(&box64_context\);\n(\s*)box64_context\.db_sizes")
+          m2 = pat2.search(s)
+          if not m2:
+              print("!! 没找到后段的 init_custommem_helper", file=sys.stderr)
+              sys.exit(1)
+          s = s[:m2.start()] + f"\n{m2.group(1)}/* init_custommem_helper() moved above (PR #4285) */\n{m2.group(2)}box64_context.db_sizes" + s[m2.end():]
+
+          open(p, "w").write(s)
+          print("补丁已应用")
+          PY
+
+          echo "=== 打补丁后 ==="
+          grep -n -B1 -A6 'LoadEnvVariables();' "$F" | head -14
+          echo "--- init_custommem_helper 出现次数（应为 1）---"
+          grep -c '^\s*init_custommem_helper' "$F" || true
+
+      - name: 下载 llvm-mingw
+        run: |
+          set -e
+          URL=$(curl -s https://api.github.com/repos/mstorsjo/llvm-mingw/releases/latest \
+                | grep -o 'https://[^"]*ucrt-ubuntu-22\.04-aarch64\.tar\.xz' | head -1)
+          echo "下载: $URL"
+          curl -L -o llvm-mingw.tar.xz "$URL"
+          ls -lh llvm-mingw.tar.xz
+          mkdir -p llvm-mingw
+          tar xf llvm-mingw.tar.xz -C llvm-mingw --strip-components=1
+          ./llvm-mingw/bin/aarch64-w64-mingw32-clang --version | head -1
+          echo "$PWD/llvm-mingw/bin" >> "$GITHUB_PATH"
+
+      - name: 配置 box64（启用 WOW64）
+        working-directory: box64
+        run: |
+          set -e
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DARM64=ON \
+            -DBOX32=ON -DBOX32_BINFMT=OFF \
+            -DWOW64=ON \
+            -DNOGIT=ON
+
+      - name: 构建 wowbox64 目标
+        working-directory: box64
+        run: |
+          set -e
+          cmake --build build --target wowbox64 -j"$(nproc)"
+
+      - name: 找产物并校验
+        working-directory: box64
+        run: |
+          set -e
+          DLL=$(find build -name 'wowbox64.dll' | head -1)
+          echo "产物: $DLL"
+          ls -lh "$DLL"
+          python3 - "$DLL" <<'PY'
+          import struct, sys
+          b = open(sys.argv[1], "rb").read()
+          m = struct.unpack_from("<H", b, 18)[0]
+          print(f"  machine = 0x{m:x}  (0xaa64 = ARM64)")
+          print(f"  size    = {len(b)} bytes")
+          assert m == 0xaa64, "不是 ARM64 PE！"
+          print("  ✅ 是 ARM64 PE")
+          PY
+          mkdir -p ../out
+          cp "$DLL" ../out/
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowbox64-patched
+          path: out/wowbox64.dll
+          if-no-files-found: error
